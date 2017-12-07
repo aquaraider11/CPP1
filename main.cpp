@@ -2,6 +2,8 @@
 #include "iostream"
 #include <SFML/Graphics.hpp>
 #include <math.h>
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
 
 sf::Vector2i size;
 struct selection
@@ -11,8 +13,8 @@ struct selection
 };
 sf::Texture background;
 struct card {
-        sf::Texture picture;
-        sf::Sprite sprite;
+        sf::Texture textureObj;
+        sf::Sprite spriteObj;
         sf::RectangleShape rect;
         sf::FloatRect floatRect;
         bool turned;
@@ -21,6 +23,8 @@ struct card {
 };
 
 std::vector<int> numberList;
+std::vector<std::string> pathList;
+
 void genNumberPairs() {
         for (int i = 1; i < size.x * size.y / 2; ++i) {
                 numberList.push_back(i);
@@ -28,10 +32,22 @@ void genNumberPairs() {
         }
         std::random_shuffle(numberList.begin(), numberList.end());
 }
+void genFilePaths()
+{
+    std::string path = "./textures";
+    for (auto & p : fs::directory_iterator(path))
+    {
+        std::string temp;
+        //std::cout << p << std::endl;
+        temp = p.path();
+        pathList.push_back(temp);
+    }
+}
 
 selection sel1;
 selection sel2;
 
+char cinDump;
 int main() {
         sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
 
@@ -42,9 +58,18 @@ int main() {
 
         card cards[size.x][size.y];
         genNumberPairs();
+        genFilePaths();
         int counter = 0;
         for (int i = 0; i < size.x; ++i) {
                 for (int j = 0; j < size.y; ++j) {
+                    cards[i][j].number = numberList[counter];
+                    counter++;
+
+                    if (cards[i][j].number >= 0 ||
+                        cards[i][j].number <= pathList.max_size())
+                    {
+                        /* code
+
                         sf::Color color(int(rand() % 256 + 1),
                                         int(rand() % 256 + 1),
                                         int(rand() % 256 + 1));
@@ -53,8 +78,19 @@ int main() {
                         cards[i][j].rect.setFillColor(color);
                         cards[i][j].turned = false;
                         cards[i][j].floatRect = cards[i][j].rect.getGlobalBounds();
-                        cards[i][j].number = numberList[counter];
-                        counter++;
+                        */
+                        std::cout << "at number [" << cards[i][j].number << "]" <<  std::endl;
+                        std::cout << "PathFile to be loaded = [" << pathList[cards[i][j].number] << "] " << std::endl;
+                        //std::cin >> cinDump;
+                        if (!cards[i][j].textureObj.loadFromFile(pathList[cards[i][j].number]))
+                        {
+                            // error...
+                        }
+                        cards[i][j].spriteObj.setTexture(cards[i][j].textureObj);
+                        cards[i][j].spriteObj.setPosition(100 * i * 1.05, 100 * j * 1.05);
+                        cards[i][j].spriteObj.setScale(sf::Vector2f(0.21, 0.145));
+                        cards[i][j].floatRect = cards[i][j].spriteObj.getGlobalBounds();
+                    }
                 }
         }
 
@@ -87,6 +123,7 @@ int main() {
                                                                 std::cout << "SEL1 content = " << sel1.coords.x << "," << sel1.coords.y << "\n";
                                                                 std::cout << "SEL2 STATUS = " << sel2.exists << "\n";
                                                                 std::cout << "SEL2 content = " << sel2.coords.x << "," << sel2.coords.y << "\n";
+
 
 
                                                                 if (sel1.exists)
@@ -130,7 +167,7 @@ int main() {
                         for (int j = 0; j < size.y; ++j) {
                                 if (cards[i][j].enabled)
                                 {
-                                        window.draw(cards[i][j].rect);
+                                        window.draw(cards[i][j].spriteObj);
                                 }
                         }
                 }
