@@ -1,4 +1,4 @@
-#include "Linked_List.h"
+//#include "Linked_List.h"
 #include "iostream"
 #include <SFML/Graphics.hpp>
 #include <math.h>
@@ -9,13 +9,14 @@ struct selection
         bool exists = false;
         sf::Vector2i coords{-1,-1};
 };
-
+sf::Texture background;
 struct card {
-        sf::Texture background, picture;
+        sf::Texture picture;
         sf::Sprite sprite;
         sf::RectangleShape rect;
         sf::FloatRect floatRect;
         bool turned;
+        bool enabled = true;
         int number;
 };
 
@@ -79,7 +80,7 @@ int main() {
                                         {
                                                 for (int j = 0; j < size.y; ++j)
                                                 {
-                                                        if (cards[i][j].floatRect.contains(sf::Vector2f(point)))
+                                                        if (cards[i][j].floatRect.contains(sf::Vector2f(point)) && cards[i][j].enabled)
                                                         {
                                                                 std::cout << "i " << i << " j " << j << " number " << cards[i][j].number << "\n";
                                                                 std::cout << "SEL1 STATUS = " << sel1.exists << "\n";
@@ -100,7 +101,6 @@ int main() {
                                                                         sel1.exists = true;
                                                                         std::cout << "sel1 = [" << i << " , " << j << "]\n";
                                                                 }
-
                                                         }
                                                 }
                                         }
@@ -110,11 +110,14 @@ int main() {
                 }
                 if (sel1.exists && sel2.exists)
                 {
-                        if (cards[sel1.coords.x][sel1.coords.y].number ==
-                            cards[sel2.coords.x][sel2.coords.y].number)
+                        if ((cards[sel1.coords.x][sel1.coords.y].number ==
+                             cards[sel2.coords.x][sel2.coords.y].number) &&
+                            (sel1.coords != sel2.coords))
                         {
-                            cards[sel1.coords.x][sel1.coords.y].rect.setFillColor(sf::Color::Transparent);
-                            cards[sel2.coords.x][sel2.coords.y].rect.setFillColor(sf::Color::Transparent);
+                                //cards[sel1.coords.x][sel1.coords.y].rect.setFillColor(sf::Color::Transparent);
+                                cards[sel1.coords.x][sel1.coords.y].enabled = false;
+                                //cards[sel2.coords.x][sel2.coords.y].rect.setFillColor(sf::Color::Transparent);
+                                cards[sel2.coords.x][sel2.coords.y].enabled = false;
                         }
                         sel1.coords = sf::Vector2i(-1,-1);
                         sel2.coords = sf::Vector2i(-1,-1);
@@ -125,7 +128,10 @@ int main() {
                 window.clear();
                 for (int i = 0; i < size.x; ++i) {
                         for (int j = 0; j < size.y; ++j) {
-                                window.draw(cards[i][j].rect);
+                                if (cards[i][j].enabled)
+                                {
+                                        window.draw(cards[i][j].rect);
+                                }
                         }
                 }
                 window.display();
