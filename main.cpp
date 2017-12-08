@@ -3,6 +3,10 @@
 #include <SFML/Graphics.hpp>
 #include <math.h>
 #include <experimental/filesystem>
+#include <ctime>        // std::time
+#include <cstdlib>      // std::rand, std::srand
+#include <thread>         // std::thread
+
 namespace fs = std::experimental::filesystem;
 
 sf::Vector2i size;
@@ -24,13 +28,22 @@ struct card {
 
 std::vector<int> numberList;
 std::vector<std::string> pathList;
+int myrandom (int i) { return std::rand()%i;}
 
 void genNumberPairs() {
+    std::srand ( unsigned ( std::time(0) ) );
         for (int i = 1; i < size.x * size.y / 2; ++i) {
                 numberList.push_back(i);
                 numberList.push_back(i);
         }
-        std::random_shuffle(numberList.begin(), numberList.end());
+        std::random_shuffle(numberList.begin(), numberList.end(), myrandom);
+        for (int i = 0; i < numberList.size(); ++i)
+        {
+            /* code */
+            std::cout << numberList[i];
+
+        }
+        std::cout << "\n";
 }
 void genFilePaths()
 {
@@ -47,10 +60,39 @@ void genFilePaths()
 selection sel1;
 selection sel2;
 
+void changeCardImageToBGIMG(card card1, card card2)
+{
+
+    card1.spriteObj.setTexture(background);
+    card2.spriteObj.setTexture(background);
+}
+bool timerThreadRunning = false;
+bool waitTimerIsDone = false;
+void timerThread(int seconds)
+{
+timerThreadRunning = true;
+clock_t startTime = clock(); //Start timer
+double secondsPassed;
+double secondsToDelay = seconds;
+std::cout << "Time to delay: " << secondsToDelay << std::endl;
+bool flag = true;
+while(flag)
+ {
+  secondsPassed = (clock() - startTime) / CLOCKS_PER_SEC;
+  if(secondsPassed >= secondsToDelay)
+   {
+    std::cout << secondsPassed << " seconds have passed" << std::endl;
+    waitTimerIsDone = true;
+    flag = false;
+   }
+ }
+timerThreadRunning = false;
+}
+
 char cinDump;
 int main() {
         sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
-
+        //timerThread(5);
         std::cout << "rows" << "\n";
         std::cin >> size.y;
         std::cout << "columns" << "\n";
@@ -60,6 +102,10 @@ int main() {
         genNumberPairs();
         genFilePaths();
         int counter = 0;
+        if (!background.loadFromFile("cardBack.png"))
+        {
+            // error...
+        }
         for (int i = 0; i < size.x; ++i) {
                 for (int j = 0; j < size.y; ++j) {
                     cards[i][j].number = numberList[counter];
@@ -87,8 +133,9 @@ int main() {
                             // error...
                         }
                         cards[i][j].spriteObj.setTexture(cards[i][j].textureObj);
-                        cards[i][j].spriteObj.setPosition(100 * i * 1.05, 100 * j * 1.05);
-                        cards[i][j].spriteObj.setScale(sf::Vector2f(0.21, 0.145));
+                        cards[i][j].spriteObj.setTexture(background);
+                        cards[i][j].spriteObj.setPosition(500/2 * i * 1.05, 726/2 * j * 1.05);
+                        cards[i][j].spriteObj.setScale(sf::Vector2f(0.5, 0.5));
                         cards[i][j].floatRect = cards[i][j].spriteObj.getGlobalBounds();
                     }
                 }
@@ -126,15 +173,17 @@ int main() {
 
 
 
-                                                                if (sel1.exists)
+                                                                if (sel1.exists && !sel2.exists)
                                                                 {
                                                                         sel2.coords = sf::Vector2i(i,j);
+                                                                        cards[i][j].spriteObj.setTexture(cards[i][j].textureObj);
                                                                         sel2.exists = true;
                                                                         std::cout << "sel2 = [" << i << " , " << j << "]\n";
                                                                 }
                                                                 else if(!sel1.exists)
                                                                 {
                                                                         sel1.coords = sf::Vector2i(i,j);
+                                                                        cards[i][j].spriteObj.setTexture(cards[i][j].textureObj);
                                                                         sel1.exists = true;
                                                                         std::cout << "sel1 = [" << i << " , " << j << "]\n";
                                                                 }
@@ -155,13 +204,32 @@ int main() {
                                 cards[sel1.coords.x][sel1.coords.y].enabled = false;
                                 //cards[sel2.coords.x][sel2.coords.y].rect.setFillColor(sf::Color::Transparent);
                                 cards[sel2.coords.x][sel2.coords.y].enabled = false;
+                                waitTimerIsDone = true;
                         }
-                        sel1.coords = sf::Vector2i(-1,-1);
-                        sel2.coords = sf::Vector2i(-1,-1);
-                        sel1.exists = false;
-                        sel2.exists = false;
-                        std::cout << "SEL CLEARED!!" << "\n";
+
+                        //card * cardPTR1 = &cards[sel1.coords.x][sel1.coords.y];
+                        //card * cardPTR2 = &cards[sel2.coords.x][sel2.coords.y];
+                        //std::thread changeCardImageToBGIMG(cardPTR1, cardPTR2);
+                        //changeCardImageToBGIMG.detach();
+                        if (!timerThreadRunning){
+                            std::thread thread(timerThread, 2);
+                            thread.detach();
+                        }
+                        if (waitTimerIsDone)
+                        {
+                            /* code */
+                            cards[sel1.coords.x][sel1.coords.y].spriteObj.setTexture(background);
+                            cards[sel2.coords.x][sel2.coords.y].spriteObj.setTexture(background);
+                            waitTimerIsDone = false;
+
+                            sel1.coords = sf::Vector2i(-1,-1);
+                            sel2.coords = sf::Vector2i(-1,-1);
+                            sel1.exists = false;
+                            sel2.exists = false;
+                            std::cout << "SEL CLEARED!!" << "\n";
+                        }
                 }
+                std::cout << waitTimerIsDone << "\n";
                 window.clear();
                 for (int i = 0; i < size.x; ++i) {
                         for (int j = 0; j < size.y; ++j) {
