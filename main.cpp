@@ -87,7 +87,7 @@ bool waitTimerIsDone = false;
 bool running = false;
 void timerThread(int seconds)
 {
-    running = true;
+        running = true;
 
         /* code */
         clock_t startTime = clock();         //Start timer
@@ -236,11 +236,11 @@ int main() {
                 //If wait timer is done (so every <X> seconds clear selection and set card texture to background if both selections are selected and if card numbers are same, delete cards)
                 if (sel1.exists && sel2.exists)
                 {
-                    if (!running)
-                    {
-                        std::thread thread1 (timerThread, 2);
-                        thread1.detach();
-                    }
+                        if (!running)
+                        {
+                                std::thread thread1 (timerThread, 2);
+                                thread1.detach();
+                        }
                         if (waitTimerIsDone)
                         {
                                 //if both selections exist
