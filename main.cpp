@@ -9,7 +9,7 @@
 
 namespace fs = std::experimental::filesystem;
 
-sf::Vector2i size;
+sf::Vector2i size = sf::Vector2i(4,4);
 //Selection struct is for, well selections, as there needs to be several of them, and we need to know both if selection exists, and what the selection contains thus a struct.
 struct selection
 {
@@ -57,8 +57,8 @@ void genNumberPairs() {
 //genFilePaths generates a vector of strins where we store *some* paths of cards for later use in loading textures with card number matching the slot in the path list
 void genFilePaths()
 {
-        std::string path = "./textures";
-        for (auto & p : fs::directory_iterator(path))
+        std::string path = "/home/aqua/CPP1/textures";
+        for (auto & p : std::experimental::filesystem::directory_iterator(path))
         {
                 std::string temp;
                 //std::cout << p << std::endl;
@@ -114,14 +114,14 @@ void timerThread(int seconds)
 //a thing...
 char cinDump;
 int main() {
-        sf::RenderWindow window(sf::VideoMode(200, 200), "SFML works!");
+        sf::RenderWindow window(sf::VideoMode(2000, 2000), "SFML works!");
         //timerThread(5); // timerThread test
 
         // ask the user for rows and columns of grid
-        std::cout << "rows" << "\n";
-        std::cin >> size.y;
-        std::cout << "columns" << "\n";
-        std::cin >> size.x;
+        //std::cout << "rows" << "\n";
+        //std::cin >> size.y;
+        //std::cout << "columns" << "\n";
+        //std::cin >> size.x;
 
         // creatinf 2d array of cards for that size
         card cards[size.x][size.y];
@@ -132,7 +132,7 @@ int main() {
         int counter = 0;
 
         //load cardback to it's global variable
-        if (!background.loadFromFile("cardBack.png"))
+        if (!background.loadFromFile("/home/aqua/CPP1/cardBack.png"))
         {
                 // error...
         }
